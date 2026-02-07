@@ -11,17 +11,25 @@ from nltk.tokenize import word_tokenize
 from nltk import pos_tag
 
 # Download NLTK resources
+import ssl
+
 try:
-    nltk.download("punkt", quiet=True)
-    nltk.download("stopwords", quiet=True)
-    nltk.download("averaged_perceptron_tagger", quiet=True)
-except:
+    _create_unverified_https_context = ssl._create_unverified_context
+except AttributeError:
     pass
+else:
+    ssl._create_default_https_context = _create_unverified_https_context
+
+# Download required NLTK data
+nltk.download('punkt', quiet=True)
+nltk.download('punkt_tab', quiet=True)
+nltk.download('stopwords', quiet=True)
+nltk.download('averaged_perceptron_tagger', quiet=True)
 
 # Page Setup
 st.set_page_config(
     page_title="ATS Resume Analyzer",
-    page_icon="𖤓",
+    page_icon="🎯",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -278,7 +286,7 @@ st.markdown("""
 st.markdown("""
 <div class="main-header">
     <div class="logo-container">
-        <div class="logo">𖤓</div>
+        <div class="logo">🎯</div>
         <div class="title-container">
             <h1 class="main-title">ATS Resume Analyzer</h1>
             <p class="subtitle">AI-Powered Resume Optimization Platform</p>
@@ -390,7 +398,7 @@ def main():
     # Centered analyze button
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        analyze_button = st.button("Analyze Resume Match", use_container_width=True)
+        analyze_button = st.button("🔍 Analyze Resume Match", use_container_width=True)
     
     if analyze_button:
         if not uploaded_file:
