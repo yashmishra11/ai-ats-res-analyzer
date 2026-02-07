@@ -29,7 +29,7 @@ nltk.download('averaged_perceptron_tagger', quiet=True)
 # Page Setup
 st.set_page_config(
     page_title="ATS Resume Analyzer",
-    page_icon="🎯",
+    page_icon="𖤓",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -286,7 +286,7 @@ st.markdown("""
 st.markdown("""
 <div class="main-header">
     <div class="logo-container">
-        <div class="logo">🎯</div>
+        <div class="logo">𖤓</div>
         <div class="title-container">
             <h1 class="main-title">ATS Resume Analyzer</h1>
             <p class="subtitle">AI-Powered Resume Optimization Platform</p>
@@ -297,7 +297,7 @@ st.markdown("""
 
 # Sidebar
 with st.sidebar:
-    st.markdown("### 📊 About This Tool")
+    st.markdown("### ⓘ About This Tool")
     st.markdown("""
     <div class="feature-card">
         <h4>Smart Analysis</h4>
@@ -321,7 +321,7 @@ with st.sidebar:
     
     st.markdown("---")
     
-    st.markdown("### 🚀 How It Works")
+    st.markdown("### ⚙ How It Works")
     st.markdown("""
     1. **Upload** your resume in PDF format
     2. **Paste** the target job description
@@ -408,7 +408,7 @@ def main():
             st.warning("⚠️ Please paste the job description to continue")
             return
         
-        with st.spinner("🤖 Analyzing your resume with AI..."):
+        with st.spinner("👀 Analyzing your resume with AI..."):
             resume_text = extract_text_from_pdf(uploaded_file)
             if not resume_text:
                 st.error("❌ Could not extract text from PDF. Please try another file.")
@@ -524,3 +524,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
