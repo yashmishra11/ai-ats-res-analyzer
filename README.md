@@ -214,11 +214,11 @@ streamlit run app.py --server.address 0.0.0.0
 ### Main Interface
 ![Main Interface](screenshots/main-interface.png)
 
-### Analysis Results
-![Analysis Results](screenshots/results.png)
-
 ### Match Score Visualization
 ![Score Visualization](screenshots/score-chart.png)
+
+### Analysis Results
+![Analysis Results](screenshots/results.png)
 
 ---
 
