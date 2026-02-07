@@ -21,7 +21,7 @@ except:
 # Page Setup
 st.set_page_config(
     page_title="ATS Resume Analyzer",
-    page_icon="❄️",
+    page_icon="𖤓",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -39,15 +39,15 @@ st.markdown("""
     
     /* Main background */
     .stApp {
-        background: linear-gradient(135deg, #0a0e27 0%, #1a1d35 100%);
+        background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
     }
     
     /* Header styling */
     .main-header {
-        background: linear-gradient(135deg, #2d3250 0%, #1a1d35 100%);
+        background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
         padding: 1.2rem 1.5rem;
         border-radius: 12px;
-        border: 1px solid #404563;
+        border: 1px solid #404040;
         margin-bottom: 1.5rem;
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     }
@@ -62,13 +62,13 @@ st.markdown("""
     .logo {
         width: 45px;
         height: 45px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #c0c0c0 0%, #808080 100%);
         border-radius: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 24px;
-        box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+        box-shadow: 0 4px 16px rgba(192, 192, 192, 0.3);
         flex-shrink: 0;
     }
     
@@ -81,7 +81,7 @@ st.markdown("""
     .main-title {
         font-size: 1.75rem;
         font-weight: 700;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #e0e0e0 0%, #a0a0a0 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         margin: 0;
@@ -91,7 +91,7 @@ st.markdown("""
     }
     
     .subtitle {
-        color: #a0aec0;
+        color: #a0a0a0;
         font-size: 0.85rem;
         font-weight: 400;
         margin-top: 0.25rem;
@@ -100,9 +100,9 @@ st.markdown("""
     
     /* Card styles */
     .custom-card {
-        background: rgba(45, 50, 80, 0.6);
+        background: rgba(40, 40, 40, 0.6);
         backdrop-filter: blur(10px);
-        border: 1px solid #404563;
+        border: 1px solid #404040;
         border-radius: 16px;
         padding: 2rem;
         margin: 1rem 0;
@@ -111,17 +111,17 @@ st.markdown("""
     
     /* Sidebar styling */
     [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #1a1d35 0%, #0a0e27 100%);
-        border-right: 1px solid #404563;
+        background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
+        border-right: 1px solid #404040;
     }
     
     [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] {
-        color: #e2e8f0;
+        color: #e0e0e0;
     }
     
     /* Button styling */
     .stButton > button {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #808080 0%, #505050 100%);
         color: white;
         border: none;
         border-radius: 12px;
@@ -130,19 +130,19 @@ st.markdown("""
         font-size: 1rem;
         letter-spacing: 0.5px;
         transition: all 0.3s ease;
-        box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+        box-shadow: 0 4px 16px rgba(128, 128, 128, 0.3);
         width: 100%;
     }
     
     .stButton > button:hover {
         transform: translateY(-2px);
-        box-shadow: 0 6px 24px rgba(102, 126, 234, 0.4);
+        box-shadow: 0 6px 24px rgba(128, 128, 128, 0.4);
     }
     
     /* File uploader */
     [data-testid="stFileUploader"] {
-        background: rgba(45, 50, 80, 0.4);
-        border: 2px dashed #404563;
+        background: rgba(40, 40, 40, 0.4);
+        border: 2px dashed #404040;
         border-radius: 12px;
         padding: 2rem;
         transition: all 0.3s ease;
@@ -153,24 +153,24 @@ st.markdown("""
     }
     
     [data-testid="stFileUploader"]:hover {
-        border-color: #667eea;
-        background: rgba(102, 126, 234, 0.1);
+        border-color: #808080;
+        background: rgba(128, 128, 128, 0.1);
     }
     
     /* Text area */
     .stTextArea textarea {
-        background: rgba(45, 50, 80, 0.6);
-        border: 1px solid #404563;
+        background: rgba(40, 40, 40, 0.6);
+        border: 1px solid #404040;
         border-radius: 12px;
-        color: #e2e8f0;
+        color: #e0e0e0;
         font-size: 0.95rem;
         padding: 1rem;
         min-height: 235px !important;
     }
     
     .stTextArea textarea:focus {
-        border-color: #667eea;
-        box-shadow: 0 0 0 1px #667eea;
+        border-color: #808080;
+        box-shadow: 0 0 0 1px #808080;
     }
     
     /* Ensure both columns have same height */
@@ -187,14 +187,14 @@ st.markdown("""
     [data-testid="stMetricValue"] {
         font-size: 3rem;
         font-weight: 700;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #e0e0e0 0%, #a0a0a0 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
     }
     
     /* Success/Warning/Info boxes */
     .stSuccess, .stWarning, .stInfo {
-        background: rgba(45, 50, 80, 0.6);
+        background: rgba(40, 40, 40, 0.6);
         border-radius: 12px;
         border-left: 4px solid;
         padding: 1rem 1.5rem;
@@ -204,26 +204,26 @@ st.markdown("""
     hr {
         margin: 2rem 0;
         border: none;
-        border-top: 1px solid #404563;
+        border-top: 1px solid #404040;
     }
     
     /* Subheader */
     .stMarkdown h3 {
-        color: #e2e8f0;
+        color: #e0e0e0;
         font-weight: 600;
         letter-spacing: -0.3px;
     }
     
     /* Info boxes in sidebar */
     .element-container .stMarkdown .stAlert {
-        background: rgba(45, 50, 80, 0.8);
+        background: rgba(40, 40, 40, 0.8);
         border-radius: 12px;
-        border: 1px solid #404563;
+        border: 1px solid #404040;
     }
     
     /* Spinner */
     .stSpinner > div {
-        border-top-color: #667eea !important;
+        border-top-color: #808080 !important;
     }
     
     /* Score badge */
@@ -237,37 +237,37 @@ st.markdown("""
     }
     
     .score-low {
-        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        background: linear-gradient(135deg, #606060 0%, #404040 100%);
         color: white;
     }
     
     .score-medium {
-        background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
-        color: #1a1d35;
+        background: linear-gradient(135deg, #909090 0%, #707070 100%);
+        color: white;
     }
     
     .score-high {
-        background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-        color: #1a1d35;
+        background: linear-gradient(135deg, #c0c0c0 0%, #a0a0a0 100%);
+        color: #1a1a1a;
     }
     
     /* Feature cards */
     .feature-card {
-        background: rgba(102, 126, 234, 0.1);
-        border: 1px solid rgba(102, 126, 234, 0.3);
+        background: rgba(128, 128, 128, 0.1);
+        border: 1px solid rgba(128, 128, 128, 0.3);
         border-radius: 12px;
         padding: 1.5rem;
         margin: 0.5rem 0;
     }
     
     .feature-card h4 {
-        color: #667eea;
+        color: #c0c0c0;
         font-size: 1.1rem;
         margin-bottom: 0.5rem;
     }
     
     .feature-card p {
-        color: #a0aec0;
+        color: #a0a0a0;
         font-size: 0.9rem;
         margin: 0;
     }
@@ -278,9 +278,10 @@ st.markdown("""
 st.markdown("""
 <div class="main-header">
     <div class="logo-container">
-        <div class="logo">❄️</div>
+        <div class="logo">𖤓</div>
         <div class="title-container">
             <h1 class="main-title">ATS Resume Analyzer</h1>
+            <p class="subtitle">AI-Powered Resume Optimization Platform</p>
         </div>
     </div>
 </div>
@@ -310,12 +311,21 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
     
-
+    st.markdown("---")
+    
+    st.markdown("### 🚀 How It Works")
+    st.markdown("""
+    1. **Upload** your resume in PDF format
+    2. **Paste** the target job description
+    3. **Analyze** with our AI algorithm
+    4. **Review** your match score & recommendations
+    """)
+    
     st.markdown("---")
     st.markdown("""
-    <div style='text-align: center; color: #667eea; font-size: 0.85rem;'>
+    <div style='text-align: center; color: #808080; font-size: 0.85rem;'>
         <p>Powered by Machine Learning</p>
-        <p style='color: #404563; font-size: 0.75rem;'>Version 1.0</p>
+        <p style='color: #404040; font-size: 0.75rem;'>Version 1.0</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -380,7 +390,7 @@ def main():
     # Centered analyze button
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        analyze_button = st.button("🔍 Analyze Resume Match", use_container_width=True)
+        analyze_button = st.button("Analyze Resume Match", use_container_width=True)
     
     if analyze_button:
         if not uploaded_file:
@@ -409,33 +419,33 @@ def main():
             
             # Visual gauge
             fig, ax = plt.subplots(figsize=(10, 1.5))
-            fig.patch.set_facecolor('#1a1d35')
-            ax.set_facecolor('#1a1d35')
+            fig.patch.set_facecolor('#1a1a1a')
+            ax.set_facecolor('#1a1a1a')
             
             # Color scheme based on score
             if similarity_score < 40:
-                color = '#f5576c'
+                color = '#606060'
                 label = 'Needs Improvement'
             elif similarity_score < 70:
-                color = '#fcb69f'
+                color = '#909090'
                 label = 'Good Match'
             else:
-                color = '#a8edea'
+                color = '#c0c0c0'
                 label = 'Excellent Match'
             
             ax.barh([0], [similarity_score], color=color, height=0.6, alpha=0.8)
             ax.barh([0], [100-similarity_score], left=[similarity_score], 
-                   color='#2d3250', height=0.6, alpha=0.3)
+                   color='#2a2a2a', height=0.6, alpha=0.3)
             ax.set_xlim(0, 100)
             ax.set_ylim(-0.5, 0.5)
-            ax.set_xlabel('Match Percentage', color='#a0aec0', fontsize=11)
-            ax.tick_params(colors='#a0aec0')
+            ax.set_xlabel('Match Percentage', color='#a0a0a0', fontsize=11)
+            ax.tick_params(colors='#a0a0a0')
             ax.spines['top'].set_visible(False)
             ax.spines['right'].set_visible(False)
             ax.spines['left'].set_visible(False)
-            ax.spines['bottom'].set_color('#404563')
+            ax.spines['bottom'].set_color('#404040')
             ax.set_yticks([])
-            ax.grid(axis='x', alpha=0.2, color='#404563')
+            ax.grid(axis='x', alpha=0.2, color='#404040')
             
             plt.tight_layout()
             st.pyplot(fig)
@@ -481,8 +491,8 @@ def main():
             with tip_col1:
                 st.markdown("""
                 <div class="custom-card">
-                    <h4 style='color: #667eea;'>✓ ATS Best Practices</h4>
-                    <ul style='color: #a0aec0;'>
+                    <h4 style='color: #c0c0c0;'>✓ ATS Best Practices</h4>
+                    <ul style='color: #a0a0a0;'>
                         <li>Use standard fonts (Arial, Calibri)</li>
                         <li>Avoid tables and text boxes</li>
                         <li>Include keywords naturally</li>
@@ -494,8 +504,8 @@ def main():
             with tip_col2:
                 st.markdown("""
                 <div class="custom-card">
-                    <h4 style='color: #667eea;'>⚡ Quick Wins</h4>
-                    <ul style='color: #a0aec0;'>
+                    <h4 style='color: #c0c0c0;'>⚡ Quick Wins</h4>
+                    <ul style='color: #a0a0a0;'>
                         <li>Match your skills to requirements</li>
                         <li>Quantify your achievements</li>
                         <li>Use action verbs</li>
