@@ -259,7 +259,6 @@ Contributions are welcome! Here's how you can help:
 **Yash Mishra**
 
 - GitHub: [@yashmishra11](https://github.com/yashmishra11)
-- LinkedIn: [Your LinkedIn Profile](https://linkedin.com/in/yourprofile)
 - Email: mr.yashofficial1102@gmail.com
 
 ---
