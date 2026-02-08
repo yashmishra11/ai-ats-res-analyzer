@@ -1106,9 +1106,4 @@ def main():
                 """, unsafe_allow_html=True)
 
 if __name__ == "__main__":
-<<<<<<< HEAD
     main()
-=======
-    main()
-
->>>>>>> dca1c5cd8c47cf0752237bd5939f2b2da36defdd
