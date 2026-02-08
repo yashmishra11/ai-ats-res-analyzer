@@ -419,7 +419,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 ################################################################################
-# HTML - SIDEBAR CONTENT
+# HTML - SIDEBAR
 with st.sidebar:
     st.markdown("### ⓘ About This Tool")
     st.markdown("""
@@ -469,7 +469,7 @@ with st.sidebar:
     """, unsafe_allow_html=True)
 
 ################################################################################
-# Helper functions
+# Helper func
 def extract_text_from_pdf(uploaded_file):
     try:
         pdf_reader = PyPDF2.PdfReader(uploaded_file)
@@ -686,7 +686,7 @@ def analyze_sections(resume_text, job_description):
     
     if job_location:
         if resume_location:
-            # Basic check if locations are compatible/near each other
+            # Basic check if locations are near each other/are the same
             if any(word in resume_location.lower() for word in job_location.lower().split()):
                 status = "good"
                 recommendation = "Your location aligns with the job location."
@@ -733,7 +733,7 @@ def analyze_sections(resume_text, job_description):
         'icon': '🔑',
         'title': 'Important Keywords',
         'status': status,
-        'missing': missing_important[:10],  # Top 10
+        'missing': missing_important[:10],  #Top 10 of those
         'recommendation': 'Incorporate these keywords naturally throughout your resume, especially in your experience descriptions and summary.' if missing_important else 'Good keyword coverage detected.',
         'rewrite_examples': rewrite_examples
     })
@@ -898,7 +898,7 @@ def main():
     
     st.markdown("<br>", unsafe_allow_html=True)
     
-    #Centered analyze button
+    #Centered analyze button for aesthetics;
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         analyze_button = st.button("🔍 Analyze Resume Match", use_container_width=True)
@@ -917,11 +917,11 @@ def main():
                 st.error("❌ Could not extract text from PDF. Please try another file.")
                 return 
             
-            # Calculate similarity
+            # Calculate_similarity
             similarity_score, resume_processed, job_processed = calculate_similarity(resume_text, job_description)
             
             ########################################################################
-            # HTML - RESULTS DISPLAY            
+            # HTML - RESULTS DISPLAY          
             st.markdown("---")
             st.markdown("## 📈 Analysis Results")
             
@@ -1128,6 +1128,6 @@ def main():
                     </ul>
                 </div>
                 """, unsafe_allow_html=True)
-
+#runninng 
 if __name__ == "__main__":
     main()
