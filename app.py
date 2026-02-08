@@ -10,7 +10,8 @@ from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from nltk import pos_tag
 
-# Download NLTK resources
+################################################################################
+# NLTK DOWNLOADS
 import ssl
 
 try:
@@ -20,13 +21,13 @@ except AttributeError:
 else:
     ssl._create_default_https_context = _create_unverified_https_context
 
-# Download required NLTK data
 nltk.download('punkt', quiet=True)
 nltk.download('punkt_tab', quiet=True)
 nltk.download('stopwords', quiet=True)
 nltk.download('averaged_perceptron_tagger', quiet=True)
 
-# Page Setup
+################################################################################
+# PAGE CONFIGURATION
 st.set_page_config(
     page_title="ATS Resume Analyzer",
     page_icon="𖤓",
@@ -34,9 +35,14 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for modern dark theme
+################################################################################
+# CSS STYLING
 st.markdown("""
 <style>
+    /* ========================================================================
+       FONTS & GLOBAL STYLES
+       ======================================================================== */
+    
     /* Import modern font */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
     
@@ -50,7 +56,9 @@ st.markdown("""
         background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
     }
     
-    /* Header styling */
+    /* ========================================================================
+       HEADER STYLING
+       ======================================================================== */
     .main-header {
         background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
         padding: 1.2rem 1.5rem;
@@ -105,6 +113,9 @@ st.markdown("""
         margin-top: 0.25rem;
         line-height: 1.3;
     }
+    
+    /* ========================================================================
+       CARD & SECTION */
     
     /* Card styles */
     .custom-card {
@@ -232,6 +243,9 @@ st.markdown("""
         font-size: 1.05rem;
     }
     
+    /* ========================================================================
+       SIDEBAR & INTERACTIVE ELEMENTS */
+    
     /* Sidebar styling */
     [data-testid="stSidebar"] {
         background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
@@ -306,6 +320,9 @@ st.markdown("""
         flex: 1;
     }
     
+    /* ========================================================================
+       METRICS & ALERT BOXES */
+    
     /* Metric styling */
     [data-testid="stMetricValue"] {
         font-size: 3rem;
@@ -349,6 +366,9 @@ st.markdown("""
         border-top-color: #808080 !important;
     }
     
+    /* ========================================================================
+       MISCELLANEOUS UI ELEMENTS */
+    
     /* Feature cards */
     .feature-card {
         background: rgba(128, 128, 128, 0.1);
@@ -384,7 +404,8 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Header with logo
+################################################################################
+# HTML - PAGE HEADER
 st.markdown("""
 <div class="main-header">
     <div class="logo-container">
@@ -397,7 +418,8 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# Sidebar
+################################################################################
+# HTML - SIDEBAR CONTENT
 with st.sidebar:
     st.markdown("### ⓘ About This Tool")
     st.markdown("""
@@ -440,12 +462,13 @@ with st.sidebar:
     
     st.markdown("---")
     st.markdown("""
-    <div style='text-align: center; color: #808080; font-size: 2.85rem;'>
+    <div style='text-align: center; color: #808080; font-size: 0.85rem;'>
         <p>Powered by Machine Learning</p>
         <p style='color: #404040; font-size: 0.75rem;'>Version 2.0</p>
     </div>
     """, unsafe_allow_html=True)
 
+################################################################################
 # Helper functions
 def extract_text_from_pdf(uploaded_file):
     try:
@@ -486,21 +509,19 @@ def extract_section(text, section_patterns):
     for pattern in section_patterns:
         match = re.search(pattern, text_lower, re.IGNORECASE | re.DOTALL)
         if match:
-            # Try to get content until next section or reasonable length
             start = match.end()
-            # Common section headers to stop at
             next_section = re.search(r'\n\s*(experience|education|skills|projects|certifications?|awards?|publications?|summary|objective)\s*[:\n]', 
                                     text_lower[start:], re.IGNORECASE)
             if next_section:
                 end = start + next_section.start()
             else:
-                end = start + 500  # Default length
+                end = start + 500 
             return text[start:end].strip()
     return ""
 
 def extract_skills(text):
     """Extract skills from text"""
-    # Common skill keywords
+    #skill keywords
     skill_patterns = [
         r'skills?\s*[:\n](.+?)(?=\n\s*[a-z]+\s*:|$)',
         r'technical skills?\s*[:\n](.+?)(?=\n\s*[a-z]+\s*:|$)',
@@ -508,7 +529,7 @@ def extract_skills(text):
     ]
     skills_text = extract_section(text, skill_patterns)
     if skills_text:
-        # Extract individual skills (comma or newline separated)
+        #individual skills
         skills = re.split(r'[,\n•\-\|]', skills_text)
         return [s.strip() for s in skills if len(s.strip()) > 2]
     return []
@@ -576,7 +597,7 @@ def analyze_sections(resume_text, job_description):
     
     sections_analysis = []
     
-    # 1. Skills Analysis
+    #Skills Analysis
     resume_skills = set([s.lower() for s in extract_skills(resume_text)])
     job_skills = set([s.lower() for s in extract_skills(job_description)])
     resume_tech = set(extract_technologies(resume_text))
@@ -603,7 +624,7 @@ def analyze_sections(resume_text, job_description):
         'skills_rewrite': skills_rewrite
     })
     
-    # 2. Education Analysis
+    #Education Analysis
     resume_education = extract_education(resume_text)
     job_education = extract_education(job_description)
     
@@ -633,7 +654,7 @@ def analyze_sections(resume_text, job_description):
         'recommendation': recommendation
     })
     
-    # 3. Experience Level Analysis
+    #Experience Level Analysis
     resume_exp_years = extract_experience_years(resume_text)
     job_exp_years = extract_experience_years(job_description)
     
@@ -659,13 +680,13 @@ def analyze_sections(resume_text, job_description):
         'recommendation': recommendation
     })
     
-    # 4. Location Analysis
+    #Location Analysis
     resume_location = extract_location(resume_text)
     job_location = extract_location(job_description)
     
     if job_location:
         if resume_location:
-            # Basic check if locations are compatible
+            # Basic check if locations are compatible/near each other
             if any(word in resume_location.lower() for word in job_location.lower().split()):
                 status = "good"
                 recommendation = "Your location aligns with the job location."
@@ -687,11 +708,11 @@ def analyze_sections(resume_text, job_description):
         'recommendation': recommendation
     })
     
-    # 5. Keywords Analysis with rewrite suggestions
+    #Keywords Analysis with rewrite suggestions
     job_words = set(job_description.lower().split())
     resume_words = set(resume_text.lower().split())
     
-    # Common important keywords
+    #important keywords
     important_keywords = ['leadership', 'management', 'team', 'project', 'strategic', 'analysis', 
                          'development', 'communication', 'collaboration', 'innovation', 'agile',
                          'scrum', 'data', 'research', 'optimization', 'performance', 'quality']
@@ -826,7 +847,7 @@ def generate_skills_section_rewrite(missing_items, existing_tech):
     if not missing_items:
         return None
     
-    # Categorize skills
+    #Categorize skills
     categories = {
         'Languages': ['python', 'java', 'javascript', 'typescript', 'c++', 'c#', 'ruby', 'go', 'rust', 'swift', 'php', 'kotlin'],
         'Frontend': ['react', 'angular', 'vue', 'html', 'css', 'sass', 'less', 'webpack', 'babel', 'next.js', 'svelte'],
@@ -852,6 +873,7 @@ def generate_skills_section_rewrite(missing_items, existing_tech):
     
     return organized
 
+################################################################################
 # Main app
 def main():
     col1, col2 = st.columns([1, 1], gap="large")
@@ -876,7 +898,7 @@ def main():
     
     st.markdown("<br>", unsafe_allow_html=True)
     
-    # Centered analyze button
+    #Centered analyze button
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         analyze_button = st.button("🔍 Analyze Resume Match", use_container_width=True)
@@ -898,6 +920,8 @@ def main():
             # Calculate similarity
             similarity_score, resume_processed, job_processed = calculate_similarity(resume_text, job_description)
             
+            ########################################################################
+            # HTML - RESULTS DISPLAY            
             st.markdown("---")
             st.markdown("## 📈 Analysis Results")
             
@@ -971,7 +995,8 @@ def main():
                 - Consider minor refinements for perfection
                 """)
             
-            # Section-by-Section Analysis
+            ########################################################################
+            # HTML - SECTION-BY-SECTION
             st.markdown("---")
             st.markdown("## 🔍 Section-by-Section Analysis")
             st.markdown("*Detailed breakdown of what needs attention in your resume*")
@@ -1005,7 +1030,7 @@ def main():
                     st.markdown("""
                         <div class="missing-items">
                             <div class="missing-items-title">✏️ Enhanced Skills Section:</div>
-                            <p style='color: #909090; font-size: 1.45rem; margin-top: 0.5rem; margin-bottom: 1rem;'>
+                            <p style='color: #909090; font-size: 0.95rem; margin-top: 0.5rem; margin-bottom: 1rem;'>
                                 Here's how to organize your skills section. Items in <strong style='color: #c0c0c0;'>bold</strong> are missing from your resume.
                             </p>
                     """, unsafe_allow_html=True)
@@ -1073,7 +1098,6 @@ def main():
                 
                 st.markdown("</div></div>", unsafe_allow_html=True)
             
-            # Additional insights
             st.markdown("---")
             st.markdown("### 💡 Pro Tips")
             
