@@ -493,11 +493,21 @@ def extract_text_from_pdf(uploaded_file):
         pdf_reader = PyPDF2.PdfReader(uploaded_file)
         text = ""
         for page in pdf_reader.pages:
-            text = text + page.extract_text()
-        return text
+            page_text = page.extract_text() or ""
+            text += "\n" + page_text
+
+        # ---- NORMALIZATION (IMPORTANT) ----
+        text = re.sub(r'\s{2,}', ' ', text)      # collapse excessive spaces
+        text = re.sub(r'\n{2,}', '\n', text)     # collapse newlines
+        text = text.replace('•', '-')            # normalize bullets
+        text = text.replace('–', '-')            # normalize dash
+        text = text.replace('—', '-')             # normalize dash
+
+        return text.strip()
     except Exception as e:
         st.error(f"Error reading PDF: {e}")
         return ""
+
 
 def clean_text(text):
     text = text.lower()
@@ -569,14 +579,6 @@ def calculate_similarity(resume_text, job_description):
     
     return round(final_score, 2), resume_processed, job_processed
 
-def calculate_section_scores(sections_analysis):
-    """Calculate current and expected scores for each section"""
-    section_scores = {
-        'current': [],
-        'expected': [],
-        'labels': []
-    }
-    
 def calculate_section_scores(sections_analysis):
     """Calculate current and expected scores for each section"""
     section_scores = {
@@ -672,21 +674,22 @@ def calculate_expected_score(current_score, sections_analysis):
     
     return round(expected_score, 2), potential_gain
 
-def extract_section(text, section_patterns):
-    """Extract a section from text based on patterns"""
+def extract_section(text, section_patterns, window=900):
+    """
+    PDF-safe section extractor.
+    Looks for section header and grabs a fixed window instead of relying on newlines.
+    """
     text_lower = text.lower()
+
     for pattern in section_patterns:
-        match = re.search(pattern, text_lower, re.IGNORECASE | re.DOTALL)
+        match = re.search(pattern, text_lower, re.IGNORECASE)
         if match:
             start = match.end()
-            next_section = re.search(r'\n\s*(experience|education|skills|projects|certifications?|awards?|publications?|summary|objective)\s*[:\n]', 
-                                    text_lower[start:], re.IGNORECASE)
-            if next_section:
-                end = start + next_section.start()
-            else:
-                end = start + 500 
+            end = start + window
             return text[start:end].strip()
+
     return ""
+
 
 def extract_skills(text):
     """Extract skills from text"""
@@ -809,20 +812,38 @@ def analyze_sections(resume_text, job_description):
     
     # Projects Analysis
     project_section = extract_section(resume_text, [
-        r'projects?\s*[:\n]',
-        r'project\s+experience\s*[:\n]',
-        r'technical\s+projects?\s*[:\n]',
+        r'projects?\b',
+        r'project\s+experience\b',
+        r'technical\s+projects?\b',
     ])
-    
-    # Also check if "project" or "projects" appears as a standalone section header
+
+    # ---------- FALLBACK PROJECT DETECTION ----------
     if not project_section:
-        # Look for common project section patterns more broadly
-        if re.search(r'\n\s*projects?\s*\n', resume_text, re.IGNORECASE):
-            # Extract everything after "PROJECTS" heading until next major section
-            match = re.search(r'projects?\s*\n(.+?)(?=\n\s*(?:certificates?|certifications?|achievements?|awards?|education|experience|skills|summary)\s*\n|$)', 
-                            resume_text, re.IGNORECASE | re.DOTALL)
-            if match:
-                project_section = match.group(1).strip()
+        project_keywords = [
+            'project', 'api', 'dashboard', 'application',
+            'system', 'platform', 'website', 'saas'
+        ]
+
+        project_titles = [
+            'anime', 'cms', 'complaint', 'assessment',
+            'resume', 'analyzer', 'webgenesis'
+        ]
+
+        text_lower = resume_text.lower()
+
+        if any(k in text_lower for k in project_keywords) and any(t in text_lower for t in project_titles):
+            project_section = "detected via semantic fallback"
+
+        
+        # Also check if "project" or "projects" appears as a standalone section header
+        if not project_section:
+            # Look for common project section patterns more broadly
+            if re.search(r'\n\s*projects?\s*\n', resume_text, re.IGNORECASE):
+                # Extract everything after "PROJECTS" heading until next major section
+                match = re.search(r'projects?\s*\n(.+?)(?=\n\s*(?:certificates?|certifications?|achievements?|awards?|education|experience|skills|summary)\s*\n|$)', 
+                                resume_text, re.IGNORECASE | re.DOTALL)
+                if match:
+                    project_section = match.group(1).strip()
     
     # Extract technologies mentioned in projects
     project_tech = set()
@@ -1239,6 +1260,11 @@ def main():
             
             # Calculate expected score
             expected_score, potential_gain = calculate_expected_score(similarity_score, sections)
+            st.info(
+    "ℹ️ Visual PDFs may affect section extraction. "
+    "The analyzer uses semantic fallbacks where possible."
+)
+
             
             ########################################################################
             # HTML - RESULTS DISPLAY          
