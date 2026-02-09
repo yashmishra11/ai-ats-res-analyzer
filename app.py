@@ -809,8 +809,20 @@ def analyze_sections(resume_text, job_description):
     
     # Projects Analysis
     project_section = extract_section(resume_text, [
-        r'projects?\s*[:\n](.+?)(?=\n\s*[a-z]+\s*:|$)',
+        r'projects?\s*[:\n]',
+        r'project\s+experience\s*[:\n]',
+        r'technical\s+projects?\s*[:\n]',
     ])
+    
+    # Also check if "project" or "projects" appears as a standalone section header
+    if not project_section:
+        # Look for common project section patterns more broadly
+        if re.search(r'\n\s*projects?\s*\n', resume_text, re.IGNORECASE):
+            # Extract everything after "PROJECTS" heading until next major section
+            match = re.search(r'projects?\s*\n(.+?)(?=\n\s*(?:certificates?|certifications?|achievements?|awards?|education|experience|skills|summary)\s*\n|$)', 
+                            resume_text, re.IGNORECASE | re.DOTALL)
+            if match:
+                project_section = match.group(1).strip()
     
     # Extract technologies mentioned in projects
     project_tech = set()
@@ -820,11 +832,20 @@ def analyze_sections(resume_text, job_description):
     # Check if projects use relevant technologies
     relevant_project_tech = project_tech & (job_tech | job_skills)
     
+    # Count number of projects (look for bullet points or project names)
+    project_count = 0
+    if project_section:
+        # Count bullets or dashes that typically indicate project entries
+        project_count = len(re.findall(r'^\s*[•\-\*]', project_section, re.MULTILINE))
+        # Also count lines that look like project titles (typically in title case or ALL CAPS)
+        project_titles = re.findall(r'^\s*[A-Z][A-Za-z\s\-]+(?:–|—|:)', project_section, re.MULTILINE)
+        project_count = max(project_count, len(project_titles))
+    
     # Determine project type alignment (frontend, backend, fullstack)
     job_type_keywords = {
-        'frontend': ['frontend', 'front-end', 'ui', 'ux', 'react', 'angular', 'vue', 'next.js', 'responsive'],
-        'backend': ['backend', 'back-end', 'api', 'server', 'database', 'node', 'express', 'django', 'flask'],
-        'fullstack': ['fullstack', 'full-stack', 'full stack', 'mern', 'mean']
+        'frontend': ['frontend', 'front-end', 'ui', 'ux', 'react', 'angular', 'vue', 'next.js', 'next', 'responsive', 'component'],
+        'backend': ['backend', 'back-end', 'api', 'server', 'database', 'node', 'express', 'django', 'flask', 'rest', 'restful'],
+        'fullstack': ['fullstack', 'full-stack', 'full stack', 'mern', 'mean', 'mevn']
     }
     
     job_type = None
@@ -837,28 +858,37 @@ def analyze_sections(resume_text, job_description):
     if project_section and job_type:
         project_lower = project_section.lower()
         if job_type == 'frontend':
-            resume_has_relevant_projects = any(kw in project_lower for kw in ['react', 'ui', 'frontend', 'responsive', 'component'])
+            # Check for frontend-related keywords in projects
+            frontend_indicators = ['react', 'ui', 'ux', 'frontend', 'front-end', 'responsive', 'component', 'css', 'html', 'interface']
+            resume_has_relevant_projects = any(kw in project_lower for kw in frontend_indicators)
         elif job_type == 'backend':
-            resume_has_relevant_projects = any(kw in project_lower for kw in ['api', 'backend', 'server', 'database', 'rest'])
+            backend_indicators = ['api', 'backend', 'back-end', 'server', 'database', 'rest', 'restful', 'node', 'express']
+            resume_has_relevant_projects = any(kw in project_lower for kw in backend_indicators)
         elif job_type == 'fullstack':
-            resume_has_relevant_projects = any(kw in project_lower for kw in ['fullstack', 'mern', 'full-stack', 'frontend', 'backend'])
+            fullstack_indicators = ['fullstack', 'full-stack', 'mern', 'mean', 'frontend', 'backend', 'full stack']
+            resume_has_relevant_projects = any(kw in project_lower for kw in fullstack_indicators)
     
     # Determine status
-    if not project_section:
+    if not project_section or project_count == 0:
         projects_status = "missing"
         projects_recommendation = "Add a Projects section showcasing 2-4 relevant projects that demonstrate your skills with technologies mentioned in the job description."
         projects_missing = ["Projects section"]
-    elif len(relevant_project_tech) == 0:
+    elif project_count < 2:
         projects_status = "weak"
-        projects_recommendation = f"Your projects should use technologies relevant to this role. Consider adding projects that use: {', '.join(list(job_tech)[:5])}."
-        projects_missing = list(job_tech - project_tech)[:5]
+        projects_recommendation = f"You have {project_count} project listed. Add 1-2 more relevant projects to strengthen your portfolio and demonstrate diverse technical skills."
+        projects_missing = ["Additional projects (aim for 3-4 total)"]
+    elif len(relevant_project_tech) < 3 and len(job_tech) > 0:
+        projects_status = "weak"
+        missing_tech = list(job_tech - project_tech)[:5]
+        projects_recommendation = f"Your projects should showcase more technologies from the job requirements. Consider adding projects using: {', '.join(missing_tech)}."
+        projects_missing = missing_tech
     elif not resume_has_relevant_projects and job_type:
         projects_status = "weak"
-        projects_recommendation = f"Add more {job_type} projects to align with this role. Showcase projects that demonstrate {job_type} development skills."
-        projects_missing = [f"{job_type.title()} projects"]
+        projects_recommendation = f"Add more {job_type}-focused projects to align with this role. Showcase projects that demonstrate {job_type} development skills and relevant frameworks."
+        projects_missing = [f"{job_type.title()}-focused projects"]
     else:
         projects_status = "good"
-        projects_recommendation = "Your projects align well with the job requirements and demonstrate relevant technical skills."
+        projects_recommendation = f"Your projects align well with the job requirements. You have {project_count} projects demonstrating relevant technical skills and technologies."
         projects_missing = []
     
     sections_analysis.append({
