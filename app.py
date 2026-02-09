@@ -41,7 +41,7 @@ st.markdown("""
 <style>
     /* ========================================================================
        FONTS & GLOBAL STYLES
-       ======================================================================== */
+        */
     
     /* Import modern font */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
@@ -58,7 +58,7 @@ st.markdown("""
     
     /* ========================================================================
        HEADER STYLING
-       ======================================================================== */
+        */
     .main-header {
         background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
         padding: 1.2rem 1.5rem;
@@ -115,7 +115,8 @@ st.markdown("""
     }
     
     /* ========================================================================
-       CARD & SECTION */
+       CARD & SECTION 
+       */
     
     /* Card styles */
     .custom-card {
@@ -244,7 +245,8 @@ st.markdown("""
     }
     
     /* ========================================================================
-       SIDEBAR & INTERACTIVE ELEMENTS */
+       SIDEBAR & INTERACTIVE ELEMENTS 
+       */
     
     /* Sidebar styling */
     [data-testid="stSidebar"] {
@@ -321,7 +323,8 @@ st.markdown("""
     }
     
     /* ========================================================================
-       METRICS & ALERT BOXES */
+       METRICS & ALERT BOXES 
+       */
     
     /* Metric styling */
     [data-testid="stMetricValue"] {
@@ -367,7 +370,8 @@ st.markdown("""
     }
     
     /* ========================================================================
-       MISCELLANEOUS UI ELEMENTS */
+       MISCELLANEOUS UI ELEMENTS 
+       */
     
     /* Feature cards */
     .feature-card {
@@ -1155,46 +1159,6 @@ def main():
             # Feedback based on score
             st.markdown("<br>", unsafe_allow_html=True)
             
-            st.markdown(f"""
-            <div class="score-comparison">
-                <h4 style='color: #e0e0e0; margin-bottom: 1rem;'>📊 Improvement Potential</h4>
-                <p style='color: #b0b0b0; line-height: 1.8;'>
-                    By addressing the recommendations below, you could improve your match score from 
-                    <strong style='color: #c0c0c0;'>{similarity_score:.1f}%</strong> to 
-                    <strong style='color: #80ff80;'>{expected_score:.1f}%</strong> 
-                    (a potential gain of <strong style='color: #ffd080;'>+{potential_gain:.1f}%</strong>).
-                </p>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            if similarity_score < 40:
-                st.error(f"""
-                **{label}** - Your resume needs significant optimization to match this role.
-                
-                **Recommendations:**
-                - Incorporate more keywords from the job description
-                - Highlight relevant skills and experiences
-                - Tailor your resume specifically for this position
-                """)
-            elif similarity_score < 70:
-                st.info(f"""
-                **{label}** - Your resume aligns fairly well with the job requirements.
-                
-                **Recommendations:**
-                - Add more specific keywords from the job posting
-                - Emphasize achievements related to the role
-                - Fine-tune your experience descriptions
-                """)
-            else:
-                st.success(f"""
-                **{label}** - Your resume strongly aligns with this job posting!
-                
-                **You're on the right track:**
-                - Strong keyword alignment detected
-                - Relevant experience highlighted
-                - Consider minor refinements for perfection
-                """)
-            
             ########################################################################
             # HTML - SECTION-BY-SECTION
             st.markdown("---")
@@ -1225,14 +1189,6 @@ def main():
                 
                 # Special handling for Skills & Technologies section
                 if section['title'] == 'Skills & Technologies' and section.get('skills_rewrite'):
-                    st.markdown("""
-                        <div class="missing-items">
-                            <div class="missing-items-title">✏️ Missing Skills & Technologies:</div>
-                            <p style='color: #909090; font-size: 0.95rem; margin-top: 0.5rem; margin-bottom: 1rem;'>
-                                Add these to your resume if you have experience with them:
-                            </p>
-                    """, unsafe_allow_html=True)
-                    
                     # Collect all missing items organized by category
                     missing_by_category = []
                     for category, data in section['skills_rewrite'].items():
@@ -1240,29 +1196,35 @@ def main():
                         if missing_in_cat:
                             missing_by_category.append(f"**{category}**: {', '.join(missing_in_cat)}")
                     
-                    # Display as simple bullet points
-                    for item in missing_by_category:
-                        st.markdown(f"- {item}", unsafe_allow_html=True)
-                    
-                    st.markdown("</div>", unsafe_allow_html=True)
+                    # Add missing items to the recommendation section
+                    if missing_by_category:
+                        st.markdown("""
+                            <div class="recommendation-box" style="margin-top: 1rem;">
+                                <div class="recommendation-title">📝 Missing Skills to Add:</div>
+                            </div>
+                        """, unsafe_allow_html=True)
+                        for item in missing_by_category:
+                            st.markdown(f"&nbsp;&nbsp;&nbsp;&nbsp;• {item}")
+                        st.markdown("<br>", unsafe_allow_html=True)
                 
                 # Special handling for Important Keywords section - show rewrite examples
                 elif section['title'] == 'Important Keywords' and section.get('rewrite_examples'):
+                    # Add examples to the recommendation section
                     st.markdown("""
-                        <div class="missing-items">
-                            <div class="missing-items-title">✏️ Example Bullet Points to Add:</div>
-                            <p style='color: #909090; font-size: 0.95rem; margin-top: 0.5rem; margin-bottom: 1rem;'>
-                                Adapt these examples to your actual experience:
+                        <div class="recommendation-box" style="margin-top: 1rem;">
+                            <div class="recommendation-title">📝 Example Bullet Points:</div>
+                            <p style='color: #909090; font-size: 0.9rem; margin-top: 0.5rem;'>
+                                Adapt these to your actual experience:
                             </p>
+                        </div>
                     """, unsafe_allow_html=True)
                     
                     for example in section['rewrite_examples']:
                         # Create simple bullet point format
                         example_text = example['example'].replace(f"**{example['keyword']}**", 
                                                                   f"**{example['keyword']}**")
-                        st.markdown(f"- {example_text}")
-                    
-                    st.markdown("</div>", unsafe_allow_html=True)
+                        st.markdown(f"&nbsp;&nbsp;&nbsp;&nbsp;• {example_text}")
+                    st.markdown("<br>", unsafe_allow_html=True)
                 
                 # For other sections, show missing items as tags
                 elif section['missing'] and section['title'] not in ['Important Keywords', 'Skills & Technologies']:
