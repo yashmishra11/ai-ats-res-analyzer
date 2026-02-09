@@ -401,6 +401,24 @@ st.markdown("""
     .streamlit-expanderHeader:hover {
         background: rgba(60, 60, 60, 0.6);
     }
+    
+    /* Expected Score Styling */
+    .score-comparison {
+        background: rgba(50, 50, 40, 0.5);
+        border: 1px solid #606040;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+    }
+    
+    .score-label {
+        font-size: 0.9rem;
+        color: #a0a0a0;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 0.5rem;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -425,7 +443,7 @@ with st.sidebar:
     st.markdown("""
     <div class="feature-card">
         <h4>Smart Analysis</h4>
-        <p>Advanced TF-IDF algorithm measures resume-job alignment</p>
+        <p>Multi-factor algorithm: TF-IDF + Skills matching + Keyword weighting</p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -464,7 +482,7 @@ with st.sidebar:
     st.markdown("""
     <div style='text-align: center; color: #808080; font-size: 0.85rem;'>
         <p>Powered by Machine Learning</p>
-        <p style='color: #404040; font-size: 0.75rem;'>Version 2.0</p>
+        <p style='color: #404040; font-size: 0.75rem;'>Version 2.1</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -496,12 +514,96 @@ def remove_stopwords(text):
     return " ".join([word for word in words if word not in stop_words])
 
 def calculate_similarity(resume_text, job_description):
+    """Enhanced similarity calculation with multiple factors"""
     resume_processed = remove_stopwords(clean_text(resume_text))
     job_processed = remove_stopwords(clean_text(job_description))
-    vectorizer = TfidfVectorizer()
+    
+    # 1. Basic TF-IDF similarity (40% weight)
+    vectorizer = TfidfVectorizer(ngram_range=(1, 2), max_features=500)
     tfidf_matrix = vectorizer.fit_transform([resume_processed, job_processed])
-    score = cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:2])[0][0] * 100
-    return round(score, 2), resume_processed, job_processed
+    tfidf_score = cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:2])[0][0]
+    
+    # 2. Skills matching (30% weight)
+    resume_skills = set([s.lower() for s in extract_skills(resume_text)])
+    job_skills = set([s.lower() for s in extract_skills(job_description)])
+    resume_tech = set(extract_technologies(resume_text))
+    job_tech = set(extract_technologies(job_description))
+    
+    all_resume_skills = resume_skills | resume_tech
+    all_job_skills = job_skills | job_tech
+    
+    if all_job_skills:
+        skills_score = len(all_resume_skills & all_job_skills) / len(all_job_skills)
+    else:
+        skills_score = 0.5
+    
+    # 3. Important keywords matching (20% weight)
+    important_keywords = ['leadership', 'management', 'team', 'project', 'strategic', 'analysis', 
+                         'development', 'communication', 'collaboration', 'innovation', 'agile',
+                         'scrum', 'data', 'research', 'optimization', 'performance', 'quality',
+                         'design', 'architecture', 'implementation', 'testing', 'deployment']
+    
+    job_words = set(job_description.lower().split())
+    resume_words = set(resume_text.lower().split())
+    
+    job_important = set([kw for kw in important_keywords if kw in job_words])
+    resume_important = set([kw for kw in important_keywords if kw in resume_words])
+    
+    if job_important:
+        keywords_score = len(resume_important & job_important) / len(job_important)
+    else:
+        keywords_score = 0.5
+    
+    # 4. Section completeness (10% weight)
+    sections = ['experience', 'education', 'skills', 'projects']
+    sections_present = sum(1 for s in sections if s in resume_text.lower())
+    sections_score = sections_present / len(sections)
+    
+    # Weighted combination
+    final_score = (
+        tfidf_score * 0.40 +
+        skills_score * 0.30 +
+        keywords_score * 0.20 +
+        sections_score * 0.10
+    ) * 100
+    
+    return round(final_score, 2), resume_processed, job_processed
+
+def calculate_expected_score(current_score, sections_analysis):
+    """Calculate expected score after implementing recommendations"""
+    
+    # Calculate potential improvements
+    skill_improvement = 0
+    keyword_improvement = 0
+    section_improvement = 0
+    
+    for section in sections_analysis:
+        if section['title'] == 'Skills & Technologies':
+            if section['status'] == 'missing':
+                skill_improvement = 15  # Could gain up to 15%
+            elif section['status'] == 'weak':
+                skill_improvement = 10  # Could gain up to 10%
+        
+        elif section['title'] == 'Important Keywords':
+            if section['status'] == 'missing':
+                keyword_improvement = 12  # Could gain up to 12%
+            elif section['status'] == 'weak':
+                keyword_improvement = 8  # Could gain up to 8%
+        
+        elif section['title'] in ['Education', 'Experience Level', 'Location']:
+            if section['status'] == 'missing':
+                section_improvement += 3  # Each missing section: 3%
+            elif section['status'] == 'weak':
+                section_improvement += 2  # Each weak section: 2%
+    
+    # Cap section improvement
+    section_improvement = min(section_improvement, 10)
+    
+    # Calculate expected score (with realistic ceiling)
+    potential_gain = skill_improvement + keyword_improvement + section_improvement
+    expected_score = min(current_score + potential_gain, 95)  # Cap at 95% (perfect match is rare)
+    
+    return round(expected_score, 2), potential_gain
 
 def extract_section(text, section_patterns):
     """Extract a section from text based on patterns"""
@@ -539,11 +641,14 @@ def extract_technologies(text):
     tech_keywords = [
         'python', 'java', 'javascript', 'typescript', 'c\\+\\+', 'c#', 'ruby', 'go', 'rust', 'swift',
         'react', 'angular', 'vue', 'node', 'express', 'django', 'flask', 'spring', 'bootstrap',
+        'next.js', 'next', 'redux', 'zustand', 'context api',
         'sql', 'mysql', 'postgresql', 'mongodb', 'redis', 'elasticsearch',
         'aws', 'azure', 'gcp', 'docker', 'kubernetes', 'jenkins', 'git', 'ci/cd',
         'machine learning', 'deep learning', 'tensorflow', 'pytorch', 'scikit-learn',
-        'html', 'css', 'sass', 'less', 'webpack', 'babel',
-        'rest', 'graphql', 'api', 'microservices', 'agile', 'scrum'
+        'html', 'css', 'sass', 'less', 'webpack', 'babel', 'tailwind', 'tailwindcss',
+        'material ui', 'material-ui', 'mui',
+        'rest', 'restful', 'graphql', 'api', 'microservices', 'agile', 'scrum',
+        'typescript', 'figma', 'ssr', 'ssg', 'seo'
     ]
     
     text_lower = text.lower()
@@ -850,11 +955,13 @@ def generate_skills_section_rewrite(missing_items, existing_tech):
     #Categorize skills
     categories = {
         'Languages': ['python', 'java', 'javascript', 'typescript', 'c++', 'c#', 'ruby', 'go', 'rust', 'swift', 'php', 'kotlin'],
-        'Frontend': ['react', 'angular', 'vue', 'html', 'css', 'sass', 'less', 'webpack', 'babel', 'next.js', 'svelte'],
+        'Frontend': ['react', 'angular', 'vue', 'html', 'css', 'sass', 'less', 'webpack', 'babel', 'next.js', 'next', 'svelte'],
         'Backend': ['node', 'express', 'django', 'flask', 'spring', 'fastapi', 'rails', 'asp.net'],
         'Databases': ['sql', 'mysql', 'postgresql', 'mongodb', 'redis', 'elasticsearch', 'dynamodb', 'cassandra'],
         'Cloud & DevOps': ['aws', 'azure', 'gcp', 'docker', 'kubernetes', 'jenkins', 'ci/cd', 'terraform', 'ansible'],
-        'Tools & Frameworks': ['git', 'jira', 'confluence', 'rest', 'graphql', 'api', 'microservices'],
+        'State Management': ['redux', 'zustand', 'context api'],
+        'UI Libraries': ['tailwind', 'tailwindcss', 'material ui', 'material-ui', 'mui', 'bootstrap'],
+        'Tools & Frameworks': ['git', 'jira', 'confluence', 'rest', 'restful', 'graphql', 'api', 'microservices', 'figma', 'ssr', 'ssg', 'seo'],
         'Methodologies': ['agile', 'scrum', 'kanban', 'tdd', 'bdd']
     }
     
@@ -920,17 +1027,31 @@ def main():
             # Calculate_similarity
             similarity_score, resume_processed, job_processed = calculate_similarity(resume_text, job_description)
             
+            # Analyze sections
+            sections = analyze_sections(resume_text, job_description)
+            
+            # Calculate expected score
+            expected_score, potential_gain = calculate_expected_score(similarity_score, sections)
+            
             ########################################################################
             # HTML - RESULTS DISPLAY          
             st.markdown("---")
             st.markdown("## 📈 Analysis Results")
             
-            # Score display
-            col1, col2, col3 = st.columns([1, 2, 1])
-            with col2:
-                st.metric("Match Score", f"{similarity_score:.1f}%", delta=None)
+            # Score display - Current vs Expected
+            col1, col2 = st.columns(2)
             
-            # Visual gauge
+            with col1:
+                st.markdown('<div class="score-label">Current Match Score</div>', unsafe_allow_html=True)
+                st.metric("", f"{similarity_score:.1f}%", delta=None)
+            
+            with col2:
+                st.markdown('<div class="score-label">Expected After Improvements</div>', unsafe_allow_html=True)
+                delta_text = f"+{potential_gain:.1f}%"
+                st.metric("", f"{expected_score:.1f}%", delta=delta_text, delta_color="normal")
+            
+            # Visual gauge for CURRENT score
+            st.markdown("#### Current Score")
             fig, ax = plt.subplots(figsize=(10, 1.5))
             fig.patch.set_facecolor('#1a1a1a')
             ax.set_facecolor('#1a1a1a')
@@ -964,8 +1085,57 @@ def main():
             st.pyplot(fig)
             plt.close()
             
+            # Visual gauge for EXPECTED score
+            st.markdown("#### Expected Score After Improvements")
+            fig2, ax2 = plt.subplots(figsize=(10, 1.5))
+            fig2.patch.set_facecolor('#1a1a1a')
+            ax2.set_facecolor('#1a1a1a')
+            
+            # Color scheme for expected score
+            if expected_score < 40:
+                exp_color = '#606060'
+            elif expected_score < 70:
+                exp_color = '#909090'
+            else:
+                exp_color = '#c0c0c0'
+            
+            # Show the improvement zone
+            ax2.barh([0], [similarity_score], color='#505050', height=0.6, alpha=0.4, label='Current')
+            ax2.barh([0], [expected_score - similarity_score], left=[similarity_score], 
+                    color=exp_color, height=0.6, alpha=0.8, label='Potential Gain')
+            ax2.barh([0], [100-expected_score], left=[expected_score], 
+                   color='#2a2a2a', height=0.6, alpha=0.3)
+            
+            ax2.set_xlim(0, 100)
+            ax2.set_ylim(-0.5, 0.5)
+            ax2.set_xlabel('Match Percentage', color='#a0a0a0', fontsize=11)
+            ax2.tick_params(colors='#a0a0a0')
+            ax2.spines['top'].set_visible(False)
+            ax2.spines['right'].set_visible(False)
+            ax2.spines['left'].set_visible(False)
+            ax2.spines['bottom'].set_color('#404040')
+            ax2.set_yticks([])
+            ax2.grid(axis='x', alpha=0.2, color='#404040')
+            ax2.legend(loc='upper right', framealpha=0.3, facecolor='#2a2a2a', edgecolor='#404040')
+            
+            plt.tight_layout()
+            st.pyplot(fig2)
+            plt.close()
+            
             # Feedback based on score
             st.markdown("<br>", unsafe_allow_html=True)
+            
+            st.markdown(f"""
+            <div class="score-comparison">
+                <h4 style='color: #e0e0e0; margin-bottom: 1rem;'>📊 Improvement Potential</h4>
+                <p style='color: #b0b0b0; line-height: 1.8;'>
+                    By addressing the recommendations below, you could improve your match score from 
+                    <strong style='color: #c0c0c0;'>{similarity_score:.1f}%</strong> to 
+                    <strong style='color: #80ff80;'>{expected_score:.1f}%</strong> 
+                    (a potential gain of <strong style='color: #ffd080;'>+{potential_gain:.1f}%</strong>).
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
             
             if similarity_score < 40:
                 st.error(f"""
@@ -1000,8 +1170,6 @@ def main():
             st.markdown("---")
             st.markdown("## 🔍 Section-by-Section Analysis")
             st.markdown("*Detailed breakdown of what needs attention in your resume*")
-            
-            sections = analyze_sections(resume_text, job_description)
             
             for section in sections:
                 status_class = f"status-{section['status']}"
@@ -1128,6 +1296,7 @@ def main():
                     </ul>
                 </div>
                 """, unsafe_allow_html=True)
+
 #runninng 
 if __name__ == "__main__":
     main()
