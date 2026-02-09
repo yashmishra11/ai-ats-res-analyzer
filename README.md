@@ -1,6 +1,6 @@
 # 𖤓 ATS Resume Analyzer
 
-> **AI-Powered Resume Optimization Platform** - Analyze and optimize your resume to beat Applicant Tracking Systems (ATS) and land more interviews.
+> **Resume Optimization Platform** - Analyze and optimize your resume to beat Applicant Tracking Systems (ATS) and land more interviews.
 
 [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://ai-ats-res-analyzer.streamlit.app/)
 [![Python](https://img.shields.io/badge/Python-3.8%2B-blue.svg)](https://www.python.org/)
@@ -25,7 +25,7 @@
 
 ## 🌟 Overview
 
-**ai-ats-res-analyzer** is a powerful web application that helps job seekers optimize their resumes for Applicant Tracking Systems. Using advanced Natural Language Processing (NLP) and Machine Learning algorithms, it analyzes your resume against job descriptions to provide actionable insights and improve your chances of getting past ATS filters.
+**ats-res-analyzer** is a powerful web application that helps job seekers optimize their resumes for Applicant Tracking Systems. Using advanced Natural Language Processing (NLP) and Machine Learning algorithms, it analyzes your resume against job descriptions to provide actionable insights and improve your chances of getting past ATS filters.
 
 ### Why Use This Tool?
 
@@ -62,7 +62,7 @@
 
 ## 🎬 Demo
 
-**Try it live:** [ai-ats-res-analyzer](https://ai-ats-res-analyzer.streamlit.app)
+**Try it live:** [ats-res-analyzer](https://ai-ats-res-analyzer.streamlit.app)
 
 ### Quick Start:
 1. Upload your resume (PDF format)
@@ -111,8 +111,8 @@ graph LR
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yashmishra11/ai-ats-res-analyzer.git
-   cd ai-ats-res-analyzer
+   git clone https://github.com/yashmishra11/ats-res-analyzer.git
+   cd ats-res-analyzer
    ```
 
 2. **Install dependencies**
@@ -245,7 +245,6 @@ Contributions are welcome! Here's how you can help:
 - 🔧 Add support for DOCX files
 - 🌐 Multi-language support
 - 📊 Advanced analytics dashboard
-- 🤖 AI-powered resume suggestions
 - 📱 Mobile app version
 - 🔍 Keyword density analysis
 - 💾 Save/load previous analyses
