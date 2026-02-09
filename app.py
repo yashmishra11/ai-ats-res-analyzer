@@ -590,11 +590,20 @@ def calculate_expected_score(current_score, sections_analysis):
             elif section['status'] == 'weak':
                 keyword_improvement = 8  # Could gain up to 8%
         
-        elif section['title'] in ['Education', 'Experience Level', 'Location']:
+        elif section['title'] in ['Education', 'Location']:
+            # Only penalize if actually missing/weak, not for acceptable ranges
             if section['status'] == 'missing':
                 section_improvement += 3  # Each missing section: 3%
             elif section['status'] == 'weak':
                 section_improvement += 2  # Each weak section: 2%
+        
+        # Experience Level - only penalize if genuinely below requirements
+        elif section['title'] == 'Experience Level':
+            if section['status'] == 'missing':
+                section_improvement += 3
+            elif section['status'] == 'weak':
+                section_improvement += 2
+            # If status is 'good', no penalty
     
     # Cap section improvement
     section_improvement = min(section_improvement, 10)
@@ -667,17 +676,28 @@ def extract_education(text):
     return extract_section(text, education_patterns)
 
 def extract_experience_years(text):
-    """Try to determine years of experience"""
-    # Look for year patterns
+    """Try to determine years of experience - returns tuple (min, max) or single value"""
+    # Look for year patterns in resume (actual experience)
     year_patterns = re.findall(r'\b(19|20)\d{2}\b', text)
     if len(year_patterns) >= 2:
         years = [int(y) for y in year_patterns]
-        return max(years) - min(years)
+        return (max(years) - min(years), max(years) - min(years))
     
-    # Look for explicit mentions
-    exp_match = re.search(r'(\d+)\+?\s*years?\s*(of)?\s*experience', text.lower())
+    # Look for experience ranges (e.g., "0-3 years", "2-5 years")
+    range_match = re.search(r'(\d+)\s*-\s*(\d+)\s*years?\s*(of)?\s*experience', text.lower())
+    if range_match:
+        return (int(range_match.group(1)), int(range_match.group(2)))
+    
+    # Look for explicit mentions with + (e.g., "3+ years")
+    exp_match = re.search(r'(\d+)\+\s*years?\s*(of)?\s*experience', text.lower())
     if exp_match:
-        return int(exp_match.group(1))
+        return (int(exp_match.group(1)), None)  # None means no upper limit
+    
+    # Look for exact years without + or range
+    exact_match = re.search(r'(\d+)\s*years?\s*(of)?\s*experience', text.lower())
+    if exact_match:
+        num = int(exact_match.group(1))
+        return (num, num)
     
     return None
 
@@ -763,25 +783,62 @@ def analyze_sections(resume_text, job_description):
     resume_exp_years = extract_experience_years(resume_text)
     job_exp_years = extract_experience_years(job_description)
     
+    # Handle the comparison properly
     if job_exp_years and resume_exp_years:
-        if resume_exp_years < job_exp_years:
-            status = "weak"
-            recommendation = f"The job requires {job_exp_years}+ years of experience. Emphasize your {resume_exp_years} years and highlight relevant accomplishments to bridge the gap."
-        else:
-            status = "good"
-            recommendation = f"Your {resume_exp_years} years of experience meets or exceeds the {job_exp_years} years requirement."
+        job_min, job_max = job_exp_years if isinstance(job_exp_years, tuple) else (job_exp_years, job_exp_years)
+        resume_min, resume_max = resume_exp_years if isinstance(resume_exp_years, tuple) else (resume_exp_years, resume_exp_years)
+        
+        # Check if resume experience falls within acceptable range
+        # For job posting "0-3 years", anyone with 0-3 years should be good
+        if job_max is None:  # "X+ years" requirement
+            if resume_max >= job_min:
+                status = "good"
+                recommendation = f"Your experience meets the {job_min}+ years requirement."
+            else:
+                status = "weak"
+                recommendation = f"The job requires {job_min}+ years of experience. Emphasize your {resume_max} years and highlight relevant accomplishments to bridge the gap."
+        else:  # Range like "0-3 years" or exact like "3 years"
+            # Check if candidate's experience overlaps with the range
+            if resume_min <= job_max and (job_min == 0 or resume_max >= job_min):
+                status = "good"
+                if job_min == 0:
+                    recommendation = f"Your experience level is perfect for this role (accepts {job_min}-{job_max} years)."
+                else:
+                    recommendation = f"Your experience aligns with the {job_min}-{job_max} years requirement."
+            elif resume_max < job_min:
+                status = "weak"
+                recommendation = f"The job typically requires {job_min}-{job_max} years of experience. Emphasize your {resume_max} years and highlight relevant accomplishments."
+            else:  # resume_min > job_max (overqualified)
+                status = "good"
+                recommendation = f"You have more experience than the typical {job_min}-{job_max} years range, which strengthens your application."
+        
+        missing_items = []
     elif job_exp_years and not resume_exp_years:
-        status = "missing"
-        recommendation = f"The job requires {job_exp_years}+ years of experience. Make sure this is clearly stated in your resume summary or experience section."
+        job_min, job_max = job_exp_years if isinstance(job_exp_years, tuple) else (job_exp_years, job_exp_years)
+        
+        # If the job accepts 0 years (entry-level), it's not really "missing"
+        if job_min == 0:
+            status = "good"
+            recommendation = f"This role accepts candidates with {job_min}-{job_max} years of experience. Your status as a recent graduate fits the entry-level range."
+            missing_items = []
+        else:
+            status = "missing"
+            if job_max:
+                recommendation = f"The job requires {job_min}-{job_max} years of experience. Make sure this is clearly stated in your resume summary or experience section."
+                missing_items = [f"{job_min}-{job_max} years experience"]
+            else:
+                recommendation = f"The job requires {job_min}+ years of experience. Make sure this is clearly stated in your resume summary or experience section."
+                missing_items = [f"{job_min}+ years experience"]
     else:
         status = "good"
         recommendation = "Experience level appears adequate."
+        missing_items = []
     
     sections_analysis.append({
         'icon': '💼',
         'title': 'Experience Level',
         'status': status,
-        'missing': [f"{job_exp_years}+ years experience"] if job_exp_years and (not resume_exp_years or resume_exp_years < job_exp_years) else [],
+        'missing': missing_items,
         'recommendation': recommendation
     })
     
