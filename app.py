@@ -1050,46 +1050,19 @@ def main():
                 delta_text = f"+{potential_gain:.1f}%"
                 st.metric("", f"{expected_score:.1f}%", delta=delta_text, delta_color="normal")
             
-            # Visual gauge for CURRENT score
-            st.markdown("#### Current Score")
+            # Visual gauge for comparison
+            st.markdown("#### Score Comparison")
             fig, ax = plt.subplots(figsize=(10, 1.5))
             fig.patch.set_facecolor('#1a1a1a')
             ax.set_facecolor('#1a1a1a')
             
             # Color scheme based on score
             if similarity_score < 40:
-                color = '#606060'
                 label = 'Needs Improvement'
             elif similarity_score < 70:
-                color = '#909090'
                 label = 'Good Match'
             else:
-                color = '#c0c0c0'
                 label = 'Excellent Match'
-            
-            ax.barh([0], [similarity_score], color=color, height=0.6, alpha=0.8)
-            ax.barh([0], [100-similarity_score], left=[similarity_score], 
-                   color='#2a2a2a', height=0.6, alpha=0.3)
-            ax.set_xlim(0, 100)
-            ax.set_ylim(-0.5, 0.5)
-            ax.set_xlabel('Match Percentage', color='#a0a0a0', fontsize=11)
-            ax.tick_params(colors='#a0a0a0')
-            ax.spines['top'].set_visible(False)
-            ax.spines['right'].set_visible(False)
-            ax.spines['left'].set_visible(False)
-            ax.spines['bottom'].set_color('#404040')
-            ax.set_yticks([])
-            ax.grid(axis='x', alpha=0.2, color='#404040')
-            
-            plt.tight_layout()
-            st.pyplot(fig)
-            plt.close()
-            
-            # Visual gauge for EXPECTED score
-            st.markdown("#### Expected Score After Improvements")
-            fig2, ax2 = plt.subplots(figsize=(10, 1.5))
-            fig2.patch.set_facecolor('#1a1a1a')
-            ax2.set_facecolor('#1a1a1a')
             
             # Color scheme for expected score
             if expected_score < 40:
@@ -1100,26 +1073,26 @@ def main():
                 exp_color = '#c0c0c0'
             
             # Show the improvement zone
-            ax2.barh([0], [similarity_score], color='#505050', height=0.6, alpha=0.4, label='Current')
-            ax2.barh([0], [expected_score - similarity_score], left=[similarity_score], 
+            ax.barh([0], [similarity_score], color='#505050', height=0.6, alpha=0.4, label='Current')
+            ax.barh([0], [expected_score - similarity_score], left=[similarity_score], 
                     color=exp_color, height=0.6, alpha=0.8, label='Potential Gain')
-            ax2.barh([0], [100-expected_score], left=[expected_score], 
+            ax.barh([0], [100-expected_score], left=[expected_score], 
                    color='#2a2a2a', height=0.6, alpha=0.3)
             
-            ax2.set_xlim(0, 100)
-            ax2.set_ylim(-0.5, 0.5)
-            ax2.set_xlabel('Match Percentage', color='#a0a0a0', fontsize=11)
-            ax2.tick_params(colors='#a0a0a0')
-            ax2.spines['top'].set_visible(False)
-            ax2.spines['right'].set_visible(False)
-            ax2.spines['left'].set_visible(False)
-            ax2.spines['bottom'].set_color('#404040')
-            ax2.set_yticks([])
-            ax2.grid(axis='x', alpha=0.2, color='#404040')
-            ax2.legend(loc='upper right', framealpha=0.3, facecolor='#2a2a2a', edgecolor='#404040')
+            ax.set_xlim(0, 100)
+            ax.set_ylim(-0.5, 0.5)
+            ax.set_xlabel('Match Percentage', color='#a0a0a0', fontsize=11)
+            ax.tick_params(colors='#a0a0a0')
+            ax.spines['top'].set_visible(False)
+            ax.spines['right'].set_visible(False)
+            ax.spines['left'].set_visible(False)
+            ax.spines['bottom'].set_color('#404040')
+            ax.set_yticks([])
+            ax.grid(axis='x', alpha=0.2, color='#404040')
+            ax.legend(loc='upper right', framealpha=0.3, facecolor='#2a2a2a', edgecolor='#404040')
             
             plt.tight_layout()
-            st.pyplot(fig2)
+            st.pyplot(fig)
             plt.close()
             
             # Feedback based on score
@@ -1197,30 +1170,22 @@ def main():
                 if section['title'] == 'Skills & Technologies' and section.get('skills_rewrite'):
                     st.markdown("""
                         <div class="missing-items">
-                            <div class="missing-items-title">✏️ Enhanced Skills Section:</div>
+                            <div class="missing-items-title">✏️ Missing Skills & Technologies:</div>
                             <p style='color: #909090; font-size: 0.95rem; margin-top: 0.5rem; margin-bottom: 1rem;'>
-                                Here's how to organize your skills section. Items in <strong style='color: #c0c0c0;'>bold</strong> are missing from your resume.
+                                Add these to your resume if you have experience with them:
                             </p>
                     """, unsafe_allow_html=True)
                     
+                    # Collect all missing items organized by category
+                    missing_by_category = []
                     for category, data in section['skills_rewrite'].items():
-                        items_html = []
-                        for item in data['items']:
-                            if item in data['missing']:
-                                items_html.append(f"<strong style='color: #c0c0c0;'>{item}</strong>")
-                            else:
-                                items_html.append(f"<span style='color: #909090;'>{item}</span>")
-                        
-                        st.markdown(f"""
-                            <div style='background: rgba(50, 50, 50, 0.5); padding: 1rem 1.25rem; margin: 0.75rem 0; border-radius: 8px;'>
-                                <div style='color: #a0a0a0; font-weight: 600; font-size: 1rem; margin-bottom: 0.75rem;'>
-                                    {category}
-                                </div>
-                                <div style='color: #b0b0b0; line-height: 2; font-size: 1rem;'>
-                                    {' • '.join(items_html)}
-                                </div>
-                            </div>
-                        """, unsafe_allow_html=True)
+                        missing_in_cat = [item for item in data['items'] if item in data['missing']]
+                        if missing_in_cat:
+                            missing_by_category.append(f"**{category}**: {', '.join(missing_in_cat)}")
+                    
+                    # Display as simple bullet points
+                    for item in missing_by_category:
+                        st.markdown(f"- {item}", unsafe_allow_html=True)
                     
                     st.markdown("</div>", unsafe_allow_html=True)
                 
@@ -1230,24 +1195,15 @@ def main():
                         <div class="missing-items">
                             <div class="missing-items-title">✏️ Example Bullet Points to Add:</div>
                             <p style='color: #909090; font-size: 0.95rem; margin-top: 0.5rem; margin-bottom: 1rem;'>
-                                Copy and adapt these examples to your actual experience. Replace generic details with your specific achievements.
+                                Adapt these examples to your actual experience:
                             </p>
                     """, unsafe_allow_html=True)
                     
                     for example in section['rewrite_examples']:
-                        # Highlight the keyword in the example
+                        # Create simple bullet point format
                         example_text = example['example'].replace(f"**{example['keyword']}**", 
-                                                                  f"<strong style='color: #c0c0c0;'>{example['keyword']}</strong>")
-                        st.markdown(f"""
-                            <div style='background: rgba(50, 50, 50, 0.5); padding: 1rem 1.25rem; margin: 0.75rem 0; border-radius: 8px; border-left: 3px solid #808080;'>
-                                <span style='color: #707070; font-size: 0.8rem; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;'>
-                                    {example['keyword']}
-                                </span>
-                                <p style='color: #b0b0b0; margin: 0.5rem 0 0 0; line-height: 1.7; font-size: 1rem;'>
-                                    • {example_text}
-                                </p>
-                            </div>
-                        """, unsafe_allow_html=True)
+                                                                  f"**{example['keyword']}**")
+                        st.markdown(f"- {example_text}")
                     
                     st.markdown("</div>", unsafe_allow_html=True)
                 
