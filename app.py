@@ -577,33 +577,6 @@ def calculate_section_scores(sections_analysis):
         'labels': []
     }
     
-    # Define score mapping based on status
-    status_scores = {
-        'good': 95,
-        'weak': 70,
-        'missing': 45
-    }
-    
-    # Define expected scores after improvements
-    expected_after_fix = {
-        'good': 95,      # Already good, stays same
-        'weak': 90,      # Can improve significantly
-        'missing': 85    # Can improve if added
-    }
-    
-    # Section order for display
-    section_order = ['Skills & Technologies', 'Education', 'Experience Level', 'Location', 'Important Keywords', 'Projects']
-    
-    for section_name in section_order:
-        # Find the section in analysis
-        section = next((s for s in sections_analysis if s['title'] == section_name), None)
-        if section:
-            section_scores['labels'].append(section_name.replace(' & ', ' &\n'))  # Line break for long labels
-            section_scores['current'].append(status_scores.get(section['status'], 50))
-            section_scores['expected'].append(expected_after_fix.get(section['status'], 50))
-    
-    return section_scores
-
 def calculate_section_scores(sections_analysis):
     """Calculate current and expected scores for each section"""
     section_scores = {
@@ -647,7 +620,7 @@ def calculate_section_scores(sections_analysis):
     
     return section_scores
 
-
+def calculate_expected_score(current_score, sections_analysis):
     """Calculate expected score after implementing recommendations"""
     
     # Calculate potential improvements
