@@ -125,6 +125,8 @@ graph LR
 3. **Run the application**
    ```bash
    streamlit run app.py
+   or
+   python -m streamlit run app.py
    ```
 
 4. **Open your browser**
