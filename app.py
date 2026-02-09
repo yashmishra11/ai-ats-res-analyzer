@@ -41,7 +41,7 @@ st.markdown("""
 <style>
     /* ========================================================================
        FONTS & GLOBAL STYLES
-        */
+       ======================================================================== */
     
     /* Import modern font */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
@@ -58,7 +58,7 @@ st.markdown("""
     
     /* ========================================================================
        HEADER STYLING
-        */
+       ======================================================================== */
     .main-header {
         background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
         padding: 1.2rem 1.5rem;
@@ -115,8 +115,7 @@ st.markdown("""
     }
     
     /* ========================================================================
-       CARD & SECTION 
-       */
+       CARD & SECTION */
     
     /* Card styles */
     .custom-card {
@@ -245,8 +244,7 @@ st.markdown("""
     }
     
     /* ========================================================================
-       SIDEBAR & INTERACTIVE ELEMENTS 
-       */
+       SIDEBAR & INTERACTIVE ELEMENTS */
     
     /* Sidebar styling */
     [data-testid="stSidebar"] {
@@ -323,8 +321,7 @@ st.markdown("""
     }
     
     /* ========================================================================
-       METRICS & ALERT BOXES 
-       */
+       METRICS & ALERT BOXES */
     
     /* Metric styling */
     [data-testid="stMetricValue"] {
@@ -370,8 +367,7 @@ st.markdown("""
     }
     
     /* ========================================================================
-       MISCELLANEOUS UI ELEMENTS 
-       */
+       MISCELLANEOUS UI ELEMENTS */
     
     /* Feature cards */
     .feature-card {
@@ -573,12 +569,91 @@ def calculate_similarity(resume_text, job_description):
     
     return round(final_score, 2), resume_processed, job_processed
 
-def calculate_expected_score(current_score, sections_analysis):
+def calculate_section_scores(sections_analysis):
+    """Calculate current and expected scores for each section"""
+    section_scores = {
+        'current': [],
+        'expected': [],
+        'labels': []
+    }
+    
+    # Define score mapping based on status
+    status_scores = {
+        'good': 95,
+        'weak': 70,
+        'missing': 45
+    }
+    
+    # Define expected scores after improvements
+    expected_after_fix = {
+        'good': 95,      # Already good, stays same
+        'weak': 90,      # Can improve significantly
+        'missing': 85    # Can improve if added
+    }
+    
+    # Section order for display
+    section_order = ['Skills & Technologies', 'Education', 'Experience Level', 'Location', 'Important Keywords', 'Projects']
+    
+    for section_name in section_order:
+        # Find the section in analysis
+        section = next((s for s in sections_analysis if s['title'] == section_name), None)
+        if section:
+            section_scores['labels'].append(section_name.replace(' & ', ' &\n'))  # Line break for long labels
+            section_scores['current'].append(status_scores.get(section['status'], 50))
+            section_scores['expected'].append(expected_after_fix.get(section['status'], 50))
+    
+    return section_scores
+
+def calculate_section_scores(sections_analysis):
+    """Calculate current and expected scores for each section"""
+    section_scores = {
+        'current': [],
+        'expected': [],
+        'labels': []
+    }
+    
+    # Define score mapping based on status
+    status_scores = {
+        'good': 95,
+        'weak': 70,
+        'missing': 45
+    }
+    
+    # Define expected scores after improvements
+    expected_after_fix = {
+        'good': 95,      # Already good, stays same
+        'weak': 90,      # Can improve significantly
+        'missing': 85    # Can improve if added
+    }
+    
+    # Section order for display
+    section_order = ['Skills & Technologies', 'Education', 'Experience Level', 'Location', 'Important Keywords', 'Projects']
+    
+    for section_name in section_order:
+        # Find the section in analysis
+        section = next((s for s in sections_analysis if s['title'] == section_name), None)
+        if section:
+            # Shorten labels for better display
+            label_map = {
+                'Skills & Technologies': 'Skills &\nTechnologies',
+                'Important Keywords': 'Important\nKeywords',
+                'Experience Level': 'Experience\nLevel'
+            }
+            label = label_map.get(section_name, section_name)
+            
+            section_scores['labels'].append(label)
+            section_scores['current'].append(status_scores.get(section['status'], 50))
+            section_scores['expected'].append(expected_after_fix.get(section['status'], 50))
+    
+    return section_scores
+
+
     """Calculate expected score after implementing recommendations"""
     
     # Calculate potential improvements
     skill_improvement = 0
     keyword_improvement = 0
+    project_improvement = 0
     section_improvement = 0
     
     for section in sections_analysis:
@@ -593,6 +668,12 @@ def calculate_expected_score(current_score, sections_analysis):
                 keyword_improvement = 12  # Could gain up to 12%
             elif section['status'] == 'weak':
                 keyword_improvement = 8  # Could gain up to 8%
+        
+        elif section['title'] == 'Projects':
+            if section['status'] == 'missing':
+                project_improvement = 10  # Could gain up to 10%
+            elif section['status'] == 'weak':
+                project_improvement = 6  # Could gain up to 6%
         
         elif section['title'] in ['Education', 'Location']:
             # Only penalize if actually missing/weak, not for acceptable ranges
@@ -613,7 +694,7 @@ def calculate_expected_score(current_score, sections_analysis):
     section_improvement = min(section_improvement, 10)
     
     # Calculate expected score (with realistic ceiling)
-    potential_gain = skill_improvement + keyword_improvement + section_improvement
+    potential_gain = skill_improvement + keyword_improvement + project_improvement + section_improvement
     expected_score = min(current_score + potential_gain, 95)  # Cap at 95% (perfect match is rare)
     
     return round(expected_score, 2), potential_gain
@@ -751,6 +832,68 @@ def analyze_sections(resume_text, job_description):
         'missing': list(missing_skills) + list(missing_tech),
         'recommendation': 'Add these missing skills to your resume if you have experience with them. Place them prominently in a Skills section.' if missing_skills or missing_tech else 'Your skills section aligns well with the job requirements.',
         'skills_rewrite': skills_rewrite
+    })
+    
+    # Projects Analysis
+    project_section = extract_section(resume_text, [
+        r'projects?\s*[:\n](.+?)(?=\n\s*[a-z]+\s*:|$)',
+    ])
+    
+    # Extract technologies mentioned in projects
+    project_tech = set()
+    if project_section:
+        project_tech = set(extract_technologies(project_section))
+    
+    # Check if projects use relevant technologies
+    relevant_project_tech = project_tech & (job_tech | job_skills)
+    
+    # Determine project type alignment (frontend, backend, fullstack)
+    job_type_keywords = {
+        'frontend': ['frontend', 'front-end', 'ui', 'ux', 'react', 'angular', 'vue', 'next.js', 'responsive'],
+        'backend': ['backend', 'back-end', 'api', 'server', 'database', 'node', 'express', 'django', 'flask'],
+        'fullstack': ['fullstack', 'full-stack', 'full stack', 'mern', 'mean']
+    }
+    
+    job_type = None
+    for role_type, keywords in job_type_keywords.items():
+        if any(kw in job_description.lower() for kw in keywords):
+            job_type = role_type
+            break
+    
+    resume_has_relevant_projects = False
+    if project_section and job_type:
+        project_lower = project_section.lower()
+        if job_type == 'frontend':
+            resume_has_relevant_projects = any(kw in project_lower for kw in ['react', 'ui', 'frontend', 'responsive', 'component'])
+        elif job_type == 'backend':
+            resume_has_relevant_projects = any(kw in project_lower for kw in ['api', 'backend', 'server', 'database', 'rest'])
+        elif job_type == 'fullstack':
+            resume_has_relevant_projects = any(kw in project_lower for kw in ['fullstack', 'mern', 'full-stack', 'frontend', 'backend'])
+    
+    # Determine status
+    if not project_section:
+        projects_status = "missing"
+        projects_recommendation = "Add a Projects section showcasing 2-4 relevant projects that demonstrate your skills with technologies mentioned in the job description."
+        projects_missing = ["Projects section"]
+    elif len(relevant_project_tech) == 0:
+        projects_status = "weak"
+        projects_recommendation = f"Your projects should use technologies relevant to this role. Consider adding projects that use: {', '.join(list(job_tech)[:5])}."
+        projects_missing = list(job_tech - project_tech)[:5]
+    elif not resume_has_relevant_projects and job_type:
+        projects_status = "weak"
+        projects_recommendation = f"Add more {job_type} projects to align with this role. Showcase projects that demonstrate {job_type} development skills."
+        projects_missing = [f"{job_type.title()} projects"]
+    else:
+        projects_status = "good"
+        projects_recommendation = "Your projects align well with the job requirements and demonstrate relevant technical skills."
+        projects_missing = []
+    
+    sections_analysis.append({
+        'icon': '🚀',
+        'title': 'Projects',
+        'status': projects_status,
+        'missing': projects_missing,
+        'recommendation': projects_recommendation
     })
     
     #Education Analysis
@@ -1111,46 +1254,60 @@ def main():
                 delta_text = f"+{potential_gain:.1f}%"
                 st.metric("", f"{expected_score:.1f}%", delta=delta_text, delta_color="normal")
             
-            # Visual gauge for comparison
-            st.markdown("#### Score Comparison")
-            fig, ax = plt.subplots(figsize=(10, 1.5))
+            # Visual line chart showing section-by-section impact
+            st.markdown("#### Section-by-Section Impact Analysis")
+            
+            # Calculate individual section scores
+            section_scores = calculate_section_scores(sections)
+            
+            fig, ax = plt.subplots(figsize=(12, 6))
             fig.patch.set_facecolor('#1a1a1a')
             ax.set_facecolor('#1a1a1a')
             
-            # Color scheme based on score
-            if similarity_score < 40:
-                label = 'Needs Improvement'
-            elif similarity_score < 70:
-                label = 'Good Match'
-            else:
-                label = 'Excellent Match'
+            # Plot lines
+            x_positions = range(len(section_scores['labels']))
             
-            # Color scheme for expected score
-            if expected_score < 40:
-                exp_color = '#606060'
-            elif expected_score < 70:
-                exp_color = '#909090'
-            else:
-                exp_color = '#c0c0c0'
+            # Current score line (whitish/gray)
+            ax.plot(x_positions, section_scores['current'], 
+                   marker='o', markersize=8, linewidth=2.5, 
+                   color='#b0b0b0', label='Current', alpha=0.8)
             
-            # Show the improvement zone
-            ax.barh([0], [similarity_score], color='#505050', height=0.6, alpha=0.4, label='Current')
-            ax.barh([0], [expected_score - similarity_score], left=[similarity_score], 
-                    color=exp_color, height=0.6, alpha=0.8, label='Potential Gain')
-            ax.barh([0], [100-expected_score], left=[expected_score], 
-                   color='#2a2a2a', height=0.6, alpha=0.3)
+            # Expected score line (greenish)
+            ax.plot(x_positions, section_scores['expected'], 
+                   marker='o', markersize=8, linewidth=2.5, 
+                   color='#80d080', label='After Improvements', alpha=0.9)
             
-            ax.set_xlim(0, 100)
-            ax.set_ylim(-0.5, 0.5)
-            ax.set_xlabel('Match Percentage', color='#a0a0a0', fontsize=11)
+            # Fill area between lines to show improvement potential
+            ax.fill_between(x_positions, section_scores['current'], section_scores['expected'], 
+                           alpha=0.2, color='#80d080')
+            
+            # Customize chart
+            ax.set_xticks(x_positions)
+            ax.set_xticklabels(section_scores['labels'], rotation=0, ha='center', fontsize=9, color='#a0a0a0')
+            ax.set_ylim(40, 100)
+            ax.set_ylabel('Score (%)', color='#a0a0a0', fontsize=11)
+            ax.set_xlabel('Resume Sections', color='#a0a0a0', fontsize=11)
             ax.tick_params(colors='#a0a0a0')
+            ax.grid(axis='y', alpha=0.2, color='#404040', linestyle='--')
+            ax.grid(axis='x', alpha=0)
+            
+            # Style spines
             ax.spines['top'].set_visible(False)
             ax.spines['right'].set_visible(False)
-            ax.spines['left'].set_visible(False)
+            ax.spines['left'].set_color('#404040')
             ax.spines['bottom'].set_color('#404040')
-            ax.set_yticks([])
-            ax.grid(axis='x', alpha=0.2, color='#404040')
-            ax.legend(loc='upper right', framealpha=0.3, facecolor='#2a2a2a', edgecolor='#404040')
+            
+            # Legend
+            ax.legend(loc='lower right', framealpha=0.3, facecolor='#2a2a2a', 
+                     edgecolor='#404040', fontsize=10, labelcolor='#a0a0a0')
+            
+            # Add value labels on points
+            for i, (curr, exp) in enumerate(zip(section_scores['current'], section_scores['expected'])):
+                ax.text(i, curr - 3, f'{curr}', ha='center', va='top', 
+                       fontsize=8, color='#b0b0b0', weight='bold')
+                if exp != curr:
+                    ax.text(i, exp + 2, f'{exp}', ha='center', va='bottom', 
+                           fontsize=8, color='#80d080', weight='bold')
             
             plt.tight_layout()
             st.pyplot(fig)
