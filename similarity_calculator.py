@@ -43,12 +43,30 @@ def calculate_expected_score(current_score, sections_analysis):
 # Stopword Removal
 # --------------------------------------------------
 def remove_stopwords(text):
+    """
+    Remove stopwords from text with fallback tokenization.
+    """
+    # Get stopwords with fallback
     try:
         stop_words = set(stopwords.words('english'))
     except:
-        stop_words = set()
-    words = word_tokenize(text)
-    return " ".join([word for word in words if word not in stop_words])
+        # Fallback: basic English stopwords if NLTK fails
+        stop_words = {
+            'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
+            'of', 'with', 'by', 'from', 'as', 'is', 'was', 'are', 'were', 'be',
+            'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will',
+            'would', 'should', 'could', 'may', 'might', 'must', 'can', 'this',
+            'that', 'these', 'those', 'i', 'you', 'he', 'she', 'it', 'we', 'they'
+        }
+    
+    # Tokenize with fallback
+    try:
+        words = word_tokenize(text)
+    except:
+        # Fallback: simple word splitting if NLTK fails
+        words = text.split()
+    
+    return " ".join([word for word in words if word.lower() not in stop_words])
 
 # --------------------------------------------------
 # Main Similarity Calculation
