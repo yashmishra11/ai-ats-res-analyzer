@@ -71,6 +71,12 @@ def apply_custom_css():
             border-left: 4px solid #00D4AA;
         }
         
+        /* Bold keywords in recommendations */
+        .section-card strong {
+            color: #00D4AA;
+            font-weight: 700;
+        }
+        
         /* Buttons */
         .stButton>button {
             background-color: #00D4AA;
@@ -109,7 +115,7 @@ def render_sidebar():
             "Applicant Tracking Systems (ATS)."
         )
         
-        st.markdown("### 𖤓 How It Works")
+        st.markdown("### 📊 How It Works")
         st.markdown("""
         1. **Upload** your resume in PDF format
         2. **Paste** the job description
@@ -144,6 +150,10 @@ def render_section_card(section):
     recommendation = section.get('recommendation', 'No recommendation available.')
     missing = section.get('missing', [])
     
+    # Convert markdown bold (**text**) to HTML bold (<strong>text</strong>)
+    import re
+    recommendation_html = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', recommendation)
+    
     # Determine status badge
     if status == 'good':
         status_html = '<span class="status-good">✓ Good</span>'
@@ -156,14 +166,22 @@ def render_section_card(section):
         border_color = "#FF6B6B"
     
     st.markdown(f"""
-    <div style="background-color: #1E1E1E; border-radius: 10px; padding: 20px; margin: 15px 0; border-left: 4px solid {border_color};">
+    <div class="section-card" style="background-color: #1E1E1E; border-radius: 10px; padding: 20px; margin: 15px 0; border-left: 4px solid {border_color};">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
             <h3 style="margin: 0; font-size: 1.3rem;">{icon} {title}</h3>
             {status_html}
         </div>
         <div style="background-color: #2A2A2A; border-radius: 8px; padding: 15px; margin: 10px 0;">
             <div style="color: #FFA500; font-weight: 600; margin-bottom: 8px;">💡 Recommendation</div>
-            <p style="color: #CCCCCC; margin: 0;">{recommendation}</p>
+            <p style="color: #CCCCCC; margin: 0;">
+                <style>
+                    .section-card strong {{
+                        color: #00D4AA;
+                        font-weight: 700;
+                    }}
+                </style>
+                {recommendation_html}
+            </p>
         </div>
     </div>
     """, unsafe_allow_html=True)

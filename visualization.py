@@ -46,8 +46,17 @@ def calculate_section_scores(sections_analysis):
             else:
                 score = 90
 
-        # Expected improvement boost
-        expected_score = round(min(95, score + 15))
+        # Expected improvement boost - ONLY for sections that need work
+        status = section.get('status', 'good')
+        if status == "missing":
+            # Missing sections can improve significantly
+            expected_score = round(min(95, score + 20))
+        elif status == "weak":
+            # Weak sections can improve moderately
+            expected_score = round(min(95, score + 15))
+        else:
+            # Good sections stay the same (no improvement needed)
+            expected_score = score
 
         section_scores['labels'].append(label)
         section_scores['current'].append(score)

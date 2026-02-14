@@ -143,20 +143,32 @@ def analyze_skills_section(resume_text, job_description):
     
     if missing_count == 0:
         status = "good"
-        recommendation = "Your skills and technologies align well with the job requirements."
+        recommendation = "Excellent! Your skills and technologies align well with the job requirements."
     elif missing_count <= 3:
         status = "weak"
-        recommendation = f"Consider adding these {missing_count} skills to strengthen your application: {', '.join(all_missing[:3])}"
+        # Make each skill bold
+        bold_skills = ', '.join([f"**{skill}**" for skill in all_missing])
+        recommendation = (
+            f"Add these {missing_count} missing skill{'s' if missing_count > 1 else ''}: "
+            f"{bold_skills}. "
+            "Include them in your Skills section or demonstrate them through project descriptions."
+        )
     else:
         status = "missing"
         top_missing = all_missing[:5]
-        recommendation = f"Add key skills to your resume: {', '.join(top_missing)}"
+        # Make each skill bold
+        bold_skills = ', '.join([f"**{skill}**" for skill in top_missing])
+        recommendation = (
+            f"Your resume is missing {missing_count} key technical skills. Priority skills to add: "
+            f"{bold_skills}. "
+            "Add these to your Skills section and showcase them in your projects."
+        )
     
     return {
         'icon': '⚙️',
         'title': 'Skills & Technologies',
         'status': status,
-        'missing': all_missing[:10],  # Deduplicated list
+        'missing': [],  # Empty - all info is in recommendation
         'recommendation': recommendation,
         'match_ratio': (
             len(resume_tech_normalized & job_tech_normalized) /
@@ -254,19 +266,38 @@ def analyze_projects_section(resume_text, job_description):
     elif project_count >= 2:
         # Has 2+ projects but not enough relevant tech
         projects_status = "weak"
-        missing_techs = list(job_tech - project_tech)[:3]
-        projects_recommendation = (
-            f"You have {project_count} projects. Consider incorporating these technologies: {', '.join(missing_techs)}"
-        )
-        projects_missing = missing_techs
+        missing_techs = list(job_tech - project_tech)[:5]
+        if missing_techs:
+            # Make each tech bold
+            bold_techs = ', '.join([f"**{tech}**" for tech in missing_techs])
+            projects_recommendation = (
+                f"You have {project_count} projects. Enhance them by incorporating these job-relevant technologies: "
+                f"{bold_techs}. "
+                "Update existing projects or start a new one using the required tech stack."
+            )
+        else:
+            projects_recommendation = (
+                f"You have {project_count} projects. Add more measurable outcomes and technical details to strengthen them."
+            )
+        projects_missing = []
 
     else:
         # Has only 1 project
         projects_status = "weak"
-        projects_recommendation = (
-            f"You have {project_count} project. Add 1-2 more projects using relevant technologies like: {', '.join(list(job_tech)[:3])}"
-        )
-        projects_missing = [f"Need {2 - project_count} more projects"]
+        top_tech = list(job_tech)[:5]
+        if top_tech:
+            # Make each tech bold
+            bold_techs = ', '.join([f"**{tech}**" for tech in top_tech])
+            projects_recommendation = (
+                f"You have {project_count} project. Add 1-2 more projects using technologies like: "
+                f"{bold_techs}. "
+                "This will demonstrate your ability to work with the required tech stack."
+            )
+        else:
+            projects_recommendation = (
+                f"You have {project_count} project. Add 1-2 more relevant projects to strengthen your technical credibility."
+            )
+        projects_missing = []
 
     
     return {
@@ -306,8 +337,10 @@ def analyze_education_section(resume_text, job_description):
         
         if job_edu_reqs and not resume_has_edu:
             status = "missing"
+            # Make each requirement bold
+            bold_reqs = ', '.join([f"**{req}**" for req in job_edu_reqs])
             recommendation = (
-                "The job requires specific educational qualifications. "
+                f"The job requires these educational qualifications: {bold_reqs}. "
                 "Make sure your Education section is clearly visible and matches the requirements."
             )
         elif job_edu_reqs and resume_has_edu:
@@ -324,7 +357,7 @@ def analyze_education_section(resume_text, job_description):
         'icon': '🎓',
         'title': 'Education',
         'status': status,
-        'missing': job_edu_reqs if job_education and not resume_education else [],
+        'missing': [],  # Empty - all info is in recommendation
         'recommendation': recommendation
     }
 
@@ -422,7 +455,7 @@ def analyze_experience_section(resume_text, job_description):
         'icon': '💼',
         'title': 'Experience Level',
         'status': status,
-        'missing': missing_items,
+        'missing': [],  # Empty - all info is in recommendation
         'recommendation': recommendation
     }
 
@@ -499,7 +532,7 @@ def analyze_location_section(resume_text, job_description, willing_to_relocate=N
         'icon': '📍',
         'title': 'Location',
         'status': status,
-        'missing': [job_location] if job_location and not resume_location else [],
+        'missing': [],  # Empty - all info is in recommendation
         'recommendation': recommendation,
         'job_location': job_location,
         'resume_location': resume_location,
@@ -525,18 +558,30 @@ def analyze_keywords_section(resume_text, job_description):
     
     if len(missing_important) > 5:
         status = "weak"
-        recommendation = f"Incorporate these important keywords: {', '.join(missing_important[:5])}"
+        top_keywords = missing_important[:7]
+        # Make each keyword bold
+        bold_keywords = ', '.join([f"**{kw}**" for kw in top_keywords])
+        recommendation = (
+            f"Add these {len(missing_important)} important keywords throughout your resume: "
+            f"{bold_keywords}. "
+            "Incorporate them naturally in your experience descriptions, skills section, and professional summary."
+        )
     elif len(missing_important) > 0:
         status = "weak"
-        recommendation = f"Consider adding: {', '.join(missing_important)}"
+        # Make each keyword bold
+        bold_keywords = ', '.join([f"**{kw}**" for kw in missing_important])
+        recommendation = (
+            f"Incorporate these missing keywords: {bold_keywords}. "
+            "Weave them naturally into your experience bullet points and skills section where relevant."
+        )
     else:
         status = "good"
-        recommendation = "Good keyword coverage detected."
+        recommendation = "Excellent keyword coverage! Your resume aligns well with the job requirements."
     
     return {
         'icon': '🔑',
         'title': 'Important Keywords',
         'status': status,
-        'missing': missing_important[:10],
+        'missing': [],  # Empty - all info is in recommendation
         'recommendation': recommendation
     }
