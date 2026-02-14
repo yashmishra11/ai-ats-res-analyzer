@@ -1,16 +1,31 @@
 """
 Similarity calculation and scoring utilities
+NO NLTK DEPENDENCIES - uses pure Python for tokenization
 """
 
 import re
-from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 from config import IMPORTANT_KEYWORDS, SCORE_WEIGHTS, JOB_TYPE_KEYWORDS
 from feature_extractors import extract_skills, extract_technologies, normalize_skill
 from text_extractors import clean_text
+
+# Basic English stopwords (no NLTK dependency)
+STOPWORDS = {
+    'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
+    'of', 'with', 'by', 'from', 'as', 'is', 'was', 'are', 'were', 'be',
+    'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will',
+    'would', 'should', 'could', 'may', 'might', 'must', 'can', 'this',
+    'that', 'these', 'those', 'i', 'you', 'he', 'she', 'it', 'we', 'they',
+    'what', 'which', 'who', 'when', 'where', 'why', 'how', 'all', 'each',
+    'every', 'both', 'few', 'more', 'most', 'other', 'some', 'such', 'no',
+    'nor', 'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very', 'just',
+    'me', 'him', 'her', 'us', 'them', 'my', 'your', 'his', 'its', 'our',
+    'their', 'am', 'into', 'through', 'during', 'before', 'after', 'above',
+    'below', 'up', 'down', 'out', 'off', 'over', 'under', 'again', 'further',
+    'then', 'once', 'here', 'there', 'all', 'any', 'both', 'each', 'few'
+}
 
 def calculate_expected_score(current_score, sections_analysis):
     """
@@ -39,39 +54,32 @@ def calculate_expected_score(current_score, sections_analysis):
     return round(expected, 2), total_gain
 
 
-# --------------------------------------------------
-# Stopword Removal
-# --------------------------------------------------
 def remove_stopwords(text):
     """
-    Remove stopwords from text with fallback tokenization.
+    Remove stopwords from text using simple word splitting.
+    No NLTK dependency - uses basic string operations.
     """
-    # Get stopwords with fallback
-    try:
-        stop_words = set(stopwords.words('english'))
-    except:
-        # Fallback: basic English stopwords if NLTK fails
-        stop_words = {
-            'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
-            'of', 'with', 'by', 'from', 'as', 'is', 'was', 'are', 'were', 'be',
-            'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will',
-            'would', 'should', 'could', 'may', 'might', 'must', 'can', 'this',
-            'that', 'these', 'those', 'i', 'you', 'he', 'she', 'it', 'we', 'they'
-        }
+    # Simple word splitting - split on whitespace
+    words = text.split()
     
-    # Tokenize with fallback
-    try:
-        words = word_tokenize(text)
-    except:
-        # Fallback: simple word splitting if NLTK fails
-        words = text.split()
+    # Remove stopwords (case-insensitive)
+    filtered_words = [word for word in words if word.lower() not in STOPWORDS]
     
-    return " ".join([word for word in words if word.lower() not in stop_words])
+    return " ".join(filtered_words)
 
-# --------------------------------------------------
-# Main Similarity Calculation
-# --------------------------------------------------
+
 def calculate_similarity(resume_text, job_description, sections=None):
+    """
+    Calculate similarity score between resume and job description.
+    
+    Args:
+        resume_text (str): Resume text
+        job_description (str): Job description text
+        sections (list, optional): Pre-analyzed sections
+        
+    Returns:
+        tuple: (similarity_score, resume_processed, job_processed)
+    """
     resume_processed = remove_stopwords(clean_text(resume_text))
     job_processed = remove_stopwords(clean_text(job_description))
 
